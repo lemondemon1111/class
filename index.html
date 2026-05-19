@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:#FFFBF0;min-height:100vh;}
+.app{max-width:740px;margin:0 auto;padding:16px;}
+.screen{display:none;}.screen.active{display:block;}
+.btn{display:inline-block;padding:11px 26px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:transform .1s;}
+.btn:active{transform:scale(.97);}
+.btn-yellow{background:#F5B800;color:#5A3A00;}.btn-yellow:hover{background:#e0a800;}
+.btn-outline{background:transparent;border:2px solid #F5B800;color:#B8860B;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;}.btn-outline:hover{background:#FFF8E1;}
+.progress-wrap{background:#F5E9C8;border-radius:20px;height:8px;margin-bottom:16px;}
+.progress-fill{background:#F5B800;border-radius:20px;height:8px;transition:width .4s;}
+.badge{display:inline-block;background:#F5B800;color:#5A3A00;border-radius:50px;padding:3px 14px;font-size:12px;font-weight:600;margin-bottom:8px;}
+.card-ui{background:#fff;border:1.5px solid #F5E9C8;border-radius:14px;padding:16px;margin-bottom:12px;}
+.sym-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.sym-card{border:1.5px solid #F5E9C8;border-radius:12px;padding:12px;background:#FFFBF0;text-align:center;}
+.sym-card .sname{font-size:13px;font-weight:600;color:#5A3A00;margin-top:5px;}
+.sym-card .susage{font-size:11px;color:#888;margin-top:2px;line-height:1.4;}
+h2.stitle{font-size:19px;font-weight:700;color:#3A2800;margin-bottom:4px;}
+p.ssub{font-size:13px;color:#888;margin-bottom:14px;line-height:1.6;}
+.center{text-align:center;}.nav-center{display:flex;justify-content:center;margin-top:16px;}
+.burger-big{font-size:60px;text-align:center;margin:8px 0 14px;}
+.pq-card{background:#FFFBF0;border:2px solid #F5B800;border-radius:14px;padding:14px;text-align:center;margin-bottom:12px;}
+.pq-card .qtitle{font-size:16px;font-weight:700;color:#3A2800;margin-bottom:4px;}
+.pq-card .qdesc{font-size:12px;color:#888;}
+.sym-choose{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.sym-btn{border:2px solid #E8E0D0;border-radius:12px;padding:10px 6px;background:#fff;cursor:pointer;text-align:center;transition:border-color .15s,background .15s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.sym-btn:hover{border-color:#F5B800;background:#FFFBF0;}
+.sym-btn.correct{border-color:#4CAF50!important;background:#F0FFF4!important;pointer-events:none;}
+.sym-btn.wrong{border-color:#E53935!important;background:#FFF0F0!important;pointer-events:none;}
+.sym-lbl{font-size:12px;color:#888;}
+.hint-box{background:#FFF3CD;border:1.5px solid #F5B800;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:#7A5800;line-height:1.6;display:none;}
+.hint-box.show{display:block;}
+.ok-box{background:#E8F5E9;border:1.5px solid #4CAF50;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:#2E7D32;display:none;}
+.ok-box.show{display:block;}
+
+/* 본활동 */
+.main-layout{display:flex;gap:12px;margin-top:10px;}
+.card-pool{flex:0 0 178px;}
+.pool-title{font-size:12px;font-weight:600;color:#B8860B;margin-bottom:6px;text-align:center;}
+
+/* 선택 안내 배너 */
+.select-banner{background:#FFF8E1;border:1.5px solid #F5B800;border-radius:10px;padding:7px 10px;font-size:11px;color:#7A5800;font-weight:600;text-align:center;margin-bottom:8px;display:none;}
+.select-banner.show{display:block;}
+
+/* 내용카드 */
+.content-card{background:#fff;border:2px solid #F5B800;border-radius:10px;padding:9px 10px;margin-bottom:7px;font-size:11px;font-weight:600;color:#3A2800;cursor:pointer;text-align:center;line-height:1.4;transition:box-shadow .15s,opacity .15s,border-color .15s,transform .1s;user-select:none;}
+.content-card:hover{box-shadow:0 2px 8px rgba(245,184,0,.3);}
+.content-card.selected{border-color:#FF9800;background:#FFF3E0;box-shadow:0 0 0 3px rgba(255,152,0,.35);transform:scale(1.03);}
+.content-card.used{opacity:.28;pointer-events:none;border-color:#ddd;color:#aaa;}
+
+.pool-dropzone{border:2px dashed #F5E9C8;border-radius:12px;padding:6px;min-height:40px;transition:border-color .15s,background .15s;}
+.pool-dropzone.over{border-color:#F5B800;background:#FFFBF0;}
+
+.flowchart-area{flex:1;min-width:0;}
+.flow-col{display:flex;flex-direction:column;align-items:center;gap:0;}
+.flow-arrow-down{font-size:18px;color:#F5B800;line-height:1.4;text-align:center;}
+
+/* 슬롯 */
+.flow-slot{width:100%;max-width:290px;background:#fff;border:2px dashed #F5B800;border-radius:12px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#ccc;text-align:center;padding:6px 8px;transition:border-color .2s,background .2s,box-shadow .15s;position:relative;}
+.flow-slot.over{border-color:#F5B800;background:#FFFBF0;border-style:solid;}
+/* 카드 선택 중일 때 슬롯 강조 */
+.flow-slot.clickable-target{border-style:solid;border-color:#FF9800;background:#FFFBF0;cursor:pointer;box-shadow:0 0 0 2px rgba(255,152,0,.25);}
+.flow-slot.clickable-target:hover{background:#FFF3E0;border-color:#F5B800;}
+.flow-slot.filled{border-style:solid;border-color:#F5B800;background:#FFFBF0;}
+.flow-slot.correct-slot{border-color:#4CAF50!important;background:#F0FFF4!important;}
+.flow-slot.wrong-slot{border-color:#E53935!important;background:#FFF5F5!important;}
+.flow-slot.wrong-flash{animation:flash-red .45s ease;}
+@keyframes flash-red{0%{border-color:#E53935;background:#FFF0F0;}100%{border-color:#F5B800;background:#FFFBF0;}}
+
+.slot-lbl{font-size:11px;font-weight:700;color:#5A3A00;line-height:1.4;margin-bottom:3px;text-align:center;}
+.mini-sym-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px;}
+.mini-sym-btn{border:1.5px solid #E8E0D0;border-radius:7px;padding:3px 5px;background:#fff;cursor:pointer;font-size:9px;color:#888;display:flex;flex-direction:column;align-items:center;gap:1px;transition:border-color .12s,background .12s;}
+.mini-sym-btn:hover{border-color:#F5B800;background:#FFFBF0;}
+.slot-msg{font-size:10px;margin-top:3px;text-align:center;line-height:1.4;}
+.slot-msg.ok{color:#2E7D32;}.slot-msg.err{color:#E53935;}
+.return-btn{margin-top:6px;background:transparent;border:1.5px solid #E53935;color:#E53935;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:600;cursor:pointer;transition:background .12s;}
+.return-btn:hover{background:#FFF0F0;}
+
+.branch-row{display:flex;gap:0;justify-content:center;width:100%;}
+.branch-col{display:flex;flex-direction:column;align-items:center;gap:0;flex:1;}
+.branch-lbl{font-size:10px;color:#aaa;font-weight:600;margin-bottom:2px;text-align:center;}
+
+.complete-box{background:#FFF8E1;border:2px solid #F5B800;border-radius:16px;padding:20px;margin:14px 0;overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- 시작 -->
+<div class="screen active" id="s-start">
+  <div class="center" style="padding-top:20px;">
+    <div class="burger-big">🍔</div>
+    <h2 class="stitle" style="font-size:22px;">스택버거 순서도 만들기</h2>
+    <p class="ssub" style="margin-top:8px;">스택버거 게임 규칙을 순서도로 표현해봐요!<br>먼저 순서도 기호를 배우고 직접 완성해볼 거예요.</p>
+    <button class="btn btn-yellow" onclick="go('s-tut1')" style="margin-top:6px;">시작하기 🚀</button>
+  </div>
+</div>
+
+<!-- 튜토리얼 1 -->
+<div class="screen" id="s-tut1">
+  <div class="badge">튜토리얼 1 / 3 — 순서도 기호 배우기</div>
+  <h2 class="stitle">순서도 기호를 알아봐요!</h2>
+  <p class="ssub">순서도는 일의 순서를 그림으로 나타낸 거예요. 기호마다 뜻이 달라요!</p>
+  <div class="sym-grid">
+    <div class="sym-card">
+      <svg width="80" height="38"><ellipse cx="40" cy="19" rx="36" ry="15" fill="#FFF8E1" stroke="#F5B800" stroke-width="2"/><text x="40" y="23" text-anchor="middle" font-size="11" fill="#7A5800">시작 / 끝</text></svg>
+      <div class="sname">타원형</div><div class="susage">게임의 시작과 끝을 나타내요</div>
+    </div>
+    <div class="sym-card">
+      <svg width="80" height="38"><rect x="4" y="6" width="72" height="26" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="2"/><text x="40" y="23" text-anchor="middle" font-size="11" fill="#0D47A1">행동 / 처리</text></svg>
+      <div class="sname">직사각형</div><div class="susage">무언가를 하는 행동을 나타내요</div>
+    </div>
+    <div class="sym-card">
+      <svg width="80" height="44"><polygon points="40,3 76,22 40,41 4,22" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="2"/><text x="40" y="26" text-anchor="middle" font-size="10" fill="#4A148C">조건 판단</text></svg>
+      <div class="sname">마름모</div><div class="susage">예/아니오로 나뉘는 조건이에요</div>
+    </div>
+    <div class="sym-card">
+      <svg width="80" height="38"><line x1="8" y1="19" x2="58" y2="19" stroke="#F5B800" stroke-width="2.5"/><polygon points="58,14 70,19 58,24" fill="#F5B800"/></svg>
+      <div class="sname">화살표</div><div class="susage">순서의 흐름을 연결해요</div>
+    </div>
+  </div>
+  <div class="card-ui">
+    <div style="font-size:13px;font-weight:600;color:#3A2800;margin-bottom:4px;">💡 이렇게 활동해요!</div>
+    <div style="font-size:12px;color:#888;line-height:1.8;">
+      방법 ① <b>클릭</b>: 왼쪽 카드를 클릭 → 놓을 칸을 클릭<br>
+      방법 ② <b>드래그</b>: 카드를 잡아서 칸에 끌어다 놓기<br>
+      잘못 놓은 카드는 <b>↩ 되돌리기</b>로 다시 풀로 보낼 수 있어요.
+    </div>
+  </div>
+  <div class="nav-center"><button class="btn btn-yellow" onclick="go('s-tut2')">연습 문제 풀기 →</button></div>
+</div>
+
+<!-- 튜토리얼 2 -->
+<div class="screen" id="s-tut2">
+  <div class="badge">튜토리얼 2 / 3 — 연습 문제 ①</div>
+  <h2 class="stitle">어떤 기호일까요?</h2>
+  <p class="ssub">아래 내용에 알맞은 순서도 기호를 골라보세요!</p>
+  <div class="pq-card">
+    <div class="qtitle">🎮 "게임 시작!"</div>
+    <div class="qdesc">스택버거 게임을 시작하는 순간이에요.</div>
+  </div>
+  <div class="sym-choose" id="tq1">
+    <button class="sym-btn" onclick="chkTQ(1,this,'ellipse')"><svg width="80" height="40"><ellipse cx="40" cy="20" rx="36" ry="16" fill="#FFF8E1" stroke="#F5B800" stroke-width="2"/><text x="40" y="25" text-anchor="middle" font-size="11" fill="#7A5800">시작/끝</text></svg><span class="sym-lbl">타원형</span></button>
+    <button class="sym-btn" onclick="chkTQ(1,this,'rect')"><svg width="80" height="40"><rect x="4" y="8" width="72" height="24" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="2"/><text x="40" y="24" text-anchor="middle" font-size="11" fill="#0D47A1">행동/처리</text></svg><span class="sym-lbl">직사각형</span></button>
+    <button class="sym-btn" onclick="chkTQ(1,this,'diamond')"><svg width="80" height="44"><polygon points="40,4 76,22 40,40 4,22" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="2"/><text x="40" y="26" text-anchor="middle" font-size="10" fill="#4A148C">조건판단</text></svg><span class="sym-lbl">마름모</span></button>
+    <button class="sym-btn" onclick="chkTQ(1,this,'arrow')"><svg width="80" height="40"><line x1="6" y1="20" x2="60" y2="20" stroke="#F5B800" stroke-width="2.5"/><polygon points="60,15 72,20 60,25" fill="#F5B800"/></svg><span class="sym-lbl">화살표</span></button>
+  </div>
+  <div class="hint-box" id="tq1-hint"></div>
+  <div class="ok-box" id="tq1-ok"></div>
+  <div class="nav-center"><button class="btn btn-yellow" id="tq1-next" style="display:none;" onclick="go('s-tut3')">다음 문제 →</button></div>
+</div>
+
+<!-- 튜토리얼 3 -->
+<div class="screen" id="s-tut3">
+  <div class="badge">튜토리얼 3 / 3 — 연습 문제 ②</div>
+  <h2 class="stitle">어떤 기호일까요?</h2>
+  <p class="ssub">이번엔 조금 더 어려워요. 잘 읽고 골라보세요!</p>
+  <div class="pq-card" style="border-color:#7B1FA2;background:#FAF0FF;">
+    <div class="qtitle">🔍 "재료를 순서대로 찾았나요?"</div>
+    <div class="qdesc">성공이면 버거카드 획득, 실패면 차례가 끝나요.</div>
+  </div>
+  <div class="sym-choose" id="tq2">
+    <button class="sym-btn" onclick="chkTQ(2,this,'ellipse')"><svg width="80" height="40"><ellipse cx="40" cy="20" rx="36" ry="16" fill="#FFF8E1" stroke="#F5B800" stroke-width="2"/><text x="40" y="25" text-anchor="middle" font-size="11" fill="#7A5800">시작/끝</text></svg><span class="sym-lbl">타원형</span></button>
+    <button class="sym-btn" onclick="chkTQ(2,this,'rect')"><svg width="80" height="40"><rect x="4" y="8" width="72" height="24" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="2"/><text x="40" y="24" text-anchor="middle" font-size="11" fill="#0D47A1">행동/처리</text></svg><span class="sym-lbl">직사각형</span></button>
+    <button class="sym-btn" onclick="chkTQ(2,this,'diamond')"><svg width="80" height="44"><polygon points="40,4 76,22 40,40 4,22" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="2"/><text x="40" y="26" text-anchor="middle" font-size="10" fill="#4A148C">조건판단</text></svg><span class="sym-lbl">마름모</span></button>
+    <button class="sym-btn" onclick="chkTQ(2,this,'arrow')"><svg width="80" height="40"><line x1="6" y1="20" x2="60" y2="20" stroke="#F5B800" stroke-width="2.5"/><polygon points="60,15 72,20 60,25" fill="#F5B800"/></svg><span class="sym-lbl">화살표</span></button>
+  </div>
+  <div class="hint-box" id="tq2-hint"></div>
+  <div class="ok-box" id="tq2-ok"></div>
+  <div class="nav-center"><button class="btn btn-yellow" id="tq2-next" style="display:none;" onclick="startMain()">본 활동 시작하기 🍔</button></div>
+</div>
+
+<!-- 본 활동 -->
+<div class="screen" id="s-main">
+  <div class="badge" id="main-badge">순서도 만들기</div>
+  <div class="progress-wrap"><div class="progress-fill" id="main-prog" style="width:0%"></div></div>
+  <h2 class="stitle">순서도를 완성해봐요!</h2>
+  <p class="ssub">카드를 <b>클릭</b>해서 선택하고, 놓을 칸을 <b>클릭</b>하거나 <b>드래그</b>해서 놓아요.</p>
+  <div class="select-banner" id="select-banner">✋ 카드를 선택했어요! 이제 놓을 순서도 칸을 클릭하세요. (취소하려면 카드를 다시 클릭)</div>
+  <div class="main-layout">
+    <div class="card-pool">
+      <div class="pool-title">📋 내용카드</div>
+      <div class="pool-dropzone" id="pool-dropzone">
+        <div id="pool"></div>
+      </div>
+    </div>
+    <div class="flowchart-area">
+      <div id="flow-render"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 완성 -->
+<div class="screen" id="s-complete">
+  <div class="center" style="padding-top:10px;">
+    <div style="font-size:52px;">🎉</div>
+    <h2 class="stitle" style="color:#B8860B;font-size:22px;margin-top:6px;">순서도 완성!</h2>
+    <p class="ssub">스택버거 게임 규칙을 순서도로 모두 표현했어요. 정말 잘했어요!</p>
+  </div>
+  <div class="complete-box">
+    <div style="font-size:13px;font-weight:700;color:#7A5800;margin-bottom:12px;text-align:center;">완성된 순서도 🍔</div>
+    <div id="cfc-wrap"></div>
+  </div>
+  <div class="nav-center"><button class="btn-outline" onclick="restart()">처음부터 다시하기</button></div>
+</div>
+
+</div>
+
+<script>
+const STEPS=[
+  {id:0,label:'게임 시작!',emoji:'🎮',answer:'ellipse',hint:'게임의 시작을 나타내요. 시작과 끝을 나타내는 기호는?',hintAns:'정답은 타원형! 시작과 끝은 항상 타원형이에요. 🟡'},
+  {id:1,label:'순서 정하기',emoji:'🕐',answer:'rect',hint:'누가 먼저 할지 정하는 행동이에요. 행동을 나타내는 기호는?',hintAns:'정답은 직사각형! 행동하는 단계는 직사각형이에요. 🟦'},
+  {id:2,label:'재료타일 뒤집기 또는 버거 만들기 중 선택',emoji:'🤔',answer:'diamond',hint:'두 가지 중 하나를 고르는 상황이에요. 예/아니오로 나뉘는 기호는?',hintAns:'정답은 마름모! 선택이 있을 때는 마름모예요. 🔷'},
+  {id:3,label:'재료타일 1장을 뒤집어 모두에게 보여주기',emoji:'🃏',answer:'rect',hint:'타일을 뒤집는 행동이에요. 행동을 나타내는 기호는?',hintAns:'정답은 직사각형! 뒤집는 행동은 직사각형이에요. 🟦',branchLabel:'재료타일 뒤집기'},
+  {id:4,label:'"도전!" 외치고 재료를 아래부터 순서대로 찾기',emoji:'🎯',answer:'rect',hint:'도전을 외치고 찾는 행동이에요. 행동을 나타내는 기호는?',hintAns:'정답은 직사각형! 재료를 찾는 행동은 직사각형이에요. 🟦',branchLabel:'버거 만들기'},
+  {id:5,label:'재료를 순서대로 모두 찾았나요?',emoji:'❓',answer:'diamond',hint:'성공과 실패로 나뉘는 판단이에요. 예/아니오로 가르는 기호는?',hintAns:'정답은 마름모! 조건이 있어서 두 방향으로 나뉠 때는 마름모예요. 🔷'},
+  {id:6,label:'버거카드 가져오기',emoji:'🎴',answer:'rect',hint:'버거카드를 가져오는 행동이에요. 행동을 나타내는 기호는?',hintAns:'정답은 직사각형! 카드를 가져오는 행동은 직사각형이에요. 🟦',branchLabel:'예 (성공)'},
+  {id:7,label:'게임 종료 — 모자 도장 10개를 먼저 모은 플레이어 승리!',emoji:'🏁',answer:'ellipse',hint:'게임의 끝을 나타내는 단계예요. 시작과 끝을 나타내는 기호는?',hintAns:'정답은 타원형! 끝도 타원형으로 나타내요. 🟡'},
+];
+
+const CORRECT_CARD={0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7};
+const SYM_SVG={
+  ellipse:`<svg width="52" height="28"><ellipse cx="26" cy="14" rx="24" ry="11" fill="#FFF8E1" stroke="#F5B800" stroke-width="1.5"/><text x="26" y="18" text-anchor="middle" font-size="8" fill="#7A5800">시작/끝</text></svg>`,
+  rect:`<svg width="52" height="28"><rect x="1" y="4" width="50" height="20" rx="3" fill="#E3F2FD" stroke="#1976D2" stroke-width="1.5"/><text x="26" y="17" text-anchor="middle" font-size="8" fill="#0D47A1">행동/처리</text></svg>`,
+  diamond:`<svg width="52" height="32"><polygon points="26,3 50,16 26,29 2,16" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1.5"/><text x="26" y="20" text-anchor="middle" font-size="8" fill="#4A148C">조건판단</text></svg>`,
+  arrow:`<svg width="52" height="28"><line x1="4" y1="14" x2="40" y2="14" stroke="#F5B800" stroke-width="2"/><polygon points="40,10 50,14 40,18" fill="#F5B800"/></svg>`,
+};
+const SYM_NAMES={ellipse:'타원형',rect:'직사각형',diamond:'마름모',arrow:'화살표'};
+
+let slotState={};
+let dragCardId=null;
+let dragFromSlot=null;
+let selectedCardId=null; // 클릭 선택 상태
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── 튜토리얼 ──
+const tqWrong={1:0,2:0};
+const tqAns={1:'ellipse',2:'diamond'};
+const tqHints={1:'이건 게임의 첫 단계예요. 시작과 끝을 나타내는 기호를 찾아보세요!',2:'"찾았나요?"라는 질문이 있어요. 예/아니오로 나뉘는 상황이에요!'};
+const tqOks={1:'정답이에요! 게임의 시작은 타원형이에요. 🟡',2:'정답이에요! 판단 상황은 마름모예요. 🔷'};
+function chkTQ(n,btn,sym){
+  const btns=document.querySelectorAll(`#tq${n} .sym-btn`);
+  if(sym===tqAns[n]){
+    btns.forEach(b=>b.disabled=true);btn.classList.add('correct');
+    document.getElementById(`tq${n}-hint`).className='hint-box';
+    const ok=document.getElementById(`tq${n}-ok`);ok.className='ok-box show';ok.textContent='✅ '+tqOks[n];
+    document.getElementById(`tq${n}-next`).style.display='inline-block';
+  } else {
+    btn.classList.add('wrong');btn.disabled=true;tqWrong[n]++;
+    const h=document.getElementById(`tq${n}-hint`);h.className='hint-box show';h.textContent='💡 '+tqHints[n];
+    if(tqWrong[n]>=2){
+      const ok=document.getElementById(`tq${n}-ok`);ok.className='ok-box show';ok.textContent='✅ '+tqOks[n];
+      btns.forEach(b=>b.disabled=true);
+      document.getElementById(`tq${n}-next`).style.display='inline-block';
+    }
+  }
+}
+
+// ── 본 활동 ──
+function startMain(){
+  slotState={};selectedCardId=null;dragCardId=null;dragFromSlot=null;
+  STEPS.forEach(s=>{slotState[s.id]={cardId:null,symChosen:null,wrongCount:0,locked:false,hintMsg:null,okMsg:null,wrongCard:false};});
+  const pool=[...STEPS].sort(()=>Math.random()-0.5);
+  go('s-main');
+  buildPool(pool);
+  buildFlowRender();
+  setupPoolDropzone();
+}
+
+function buildPool(pool){
+  const el=document.getElementById('pool');el.innerHTML='';
+  pool.forEach(s=>el.appendChild(makeCardEl(s.id)));
+}
+
+function makeCardEl(cardId){
+  const s=STEPS[cardId];
+  const d=document.createElement('div');
+  d.className='content-card';d.id='card-'+cardId;
+  d.textContent=s.emoji+' '+s.label;
+  d.draggable=true;
+
+  // 클릭 선택
+  d.addEventListener('click',()=>handleCardClick(cardId));
+
+  // 드래그
+  d.addEventListener('dragstart',()=>{dragCardId=cardId;dragFromSlot=null;clearClickSelect();setTimeout(()=>d.classList.add('dragging'),0);});
+  d.addEventListener('dragend',()=>d.classList.remove('dragging'));
+
+  // 터치
+  d.addEventListener('touchstart',()=>{dragCardId=cardId;dragFromSlot=null;d.classList.add('dragging');},{passive:true});
+  d.addEventListener('touchend',e=>{
+    d.classList.remove('dragging');
+    const t=e.changedTouches[0];
+    const el2=document.elementFromPoint(t.clientX,t.clientY);
+    const slot=el2?el2.closest('.flow-slot'):null;
+    if(slot) dropOnSlot(slot); else dragCardId=null;
+  },{passive:true});
+  return d;
+}
+
+// 카드 클릭 선택/취소
+function handleCardClick(cardId){
+  if(selectedCardId===cardId){
+    // 취소
+    clearClickSelect();
+  } else {
+    clearClickSelect();
+    selectedCardId=cardId;
+    const card=document.getElementById('card-'+cardId);
+    if(card) card.classList.add('selected');
+    // 슬롯들 클릭 가능 상태로
+    document.querySelectorAll('.flow-slot').forEach(slot=>{
+      const sid=parseInt(slot.dataset.sid);
+      if(!slotState[sid].locked) slot.classList.add('clickable-target');
+    });
+    document.getElementById('select-banner').className='select-banner show';
+  }
+}
+
+function clearClickSelect(){
+  if(selectedCardId!==null){
+    const card=document.getElementById('card-'+selectedCardId);
+    if(card) card.classList.remove('selected');
+  }
+  selectedCardId=null;
+  document.querySelectorAll('.flow-slot').forEach(s=>s.classList.remove('clickable-target'));
+  document.getElementById('select-banner').className='select-banner';
+}
+
+// 슬롯 클릭 (클릭 모드)
+function handleSlotClick(sid){
+  if(selectedCardId===null) return;
+  // 빈 슬롯이거나 이미 (잠기지 않은) 슬롯
+  const state=slotState[sid];
+  if(state.locked) return;
+
+  // 임시로 dragCardId 설정해서 기존 dropOnSlot 재사용
+  dragCardId=selectedCardId;
+  dragFromSlot=null;
+  clearClickSelect();
+  dropOnSlot(document.getElementById('slot-'+sid));
+}
+
+// 풀 드롭존
+function setupPoolDropzone(){
+  const dz=document.getElementById('pool-dropzone');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    if(dragCardId!==null&&dragFromSlot!==null) returnCardToPool(dragFromSlot);
+  });
+}
+
+function returnCardToPool(sid){
+  const state=slotState[sid];
+  if(!state||state.cardId===null||state.locked) return;
+  const cardId=state.cardId;
+  slotState[sid]={cardId:null,symChosen:null,wrongCount:0,locked:false,hintMsg:null,okMsg:null,wrongCard:false};
+  renderSlot(sid);
+  const card=document.getElementById('card-'+cardId);
+  if(card){card.classList.remove('used');}
+  else{document.getElementById('pool').appendChild(makeCardEl(cardId));}
+  dragCardId=null;dragFromSlot=null;
+  updateProgress();
+}
+
+// ── 순서도 렌더 ──
+function buildFlowRender(){
+  const el=document.getElementById('flow-render');el.innerHTML='';
+  const wrap=document.createElement('div');wrap.style.cssText='position:relative;';
+  const col=document.createElement('div');col.className='flow-col';
+
+  col.appendChild(makeSlotEl(0));col.appendChild(arrEl());
+  col.appendChild(makeSlotEl(1));col.appendChild(arrEl());
+  col.appendChild(makeSlotEl(2));col.appendChild(arrEl());
+
+  const brow=document.createElement('div');brow.className='branch-row';
+  [3,4].forEach(sid=>{
+    const bc=document.createElement('div');bc.className='branch-col';
+    const bl=document.createElement('div');bl.className='branch-lbl';bl.textContent=STEPS[sid].branchLabel;
+    bc.appendChild(bl);bc.appendChild(makeSlotEl(sid));brow.appendChild(bc);
+  });
+  col.appendChild(brow);col.appendChild(arrEl());
+  col.appendChild(makeSlotEl(5));
+
+  const resRow=document.createElement('div');resRow.className='branch-row';resRow.style.alignItems='flex-start';
+  const sucCol=document.createElement('div');sucCol.className='branch-col';
+  const sucLbl=document.createElement('div');sucLbl.className='branch-lbl';sucLbl.textContent='예 (성공)';
+  sucCol.appendChild(sucLbl);sucCol.appendChild(arrEl());sucCol.appendChild(makeSlotEl(6));
+  resRow.appendChild(sucCol);
+
+  const failCol=document.createElement('div');failCol.className='branch-col';
+  const failLbl=document.createElement('div');failLbl.className='branch-lbl';failLbl.textContent='아니오 (실패)';
+  const failMarker=document.createElement('div');failMarker.id='fail-marker';failMarker.style.cssText='width:2px;height:20px;background:#E53935;margin:0 auto;';
+  const failTxt=document.createElement('div');failTxt.style.cssText='font-size:9px;color:#E53935;font-weight:700;text-align:center;white-space:nowrap;margin-top:2px;';
+  failTxt.textContent='↩ 선택 단계로 돌아가기';
+  failCol.appendChild(failLbl);failCol.appendChild(failMarker);failCol.appendChild(failTxt);
+  resRow.appendChild(failCol);
+
+  col.appendChild(resRow);col.appendChild(arrEl());
+  col.appendChild(makeSlotEl(7));
+  wrap.appendChild(col);
+
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.id='loop-svg';svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;';
+  svg.innerHTML=`<defs><marker id="lmarker" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#E53935"/></marker></defs><path id="loop-path" d="" stroke="#E53935" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#lmarker)"/>`;
+  wrap.appendChild(svg);
+  el.appendChild(wrap);
+  updateProgress();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>drawLoopBack()));
+}
+
+function makeSlotEl(sid){
+  const slot=document.createElement('div');
+  slot.className='flow-slot';slot.id='slot-'+sid;slot.dataset.sid=sid;
+  slot.innerHTML=`<span style="font-size:10px;color:#ccc;">카드를<br>클릭하거나<br>드래그해서 놓아요</span>`;
+
+  // 드래그 이벤트
+  slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('over');});
+  slot.addEventListener('dragleave',()=>slot.classList.remove('over'));
+  slot.addEventListener('drop',e=>{e.preventDefault();slot.classList.remove('over');dropOnSlot(slot);});
+
+  // 클릭 이벤트 (카드가 선택된 상태일 때만 동작)
+  slot.addEventListener('click',()=>{
+    if(selectedCardId!==null) handleSlotClick(sid);
+  });
+  return slot;
+}
+
+function arrEl(){const d=document.createElement('div');d.className='flow-arrow-down';d.textContent='↓';return d;}
+
+function drawLoopBack(){
+  const wrap=document.getElementById('flow-render');if(!wrap) return;
+  const wEl=wrap.querySelector('div');if(!wEl) return;
+  const wRect=wEl.getBoundingClientRect();
+  const slot2=document.getElementById('slot-2'),marker=document.getElementById('fail-marker'),path=document.getElementById('loop-path');
+  if(!slot2||!marker||!path) return;
+  const s2r=slot2.getBoundingClientRect(),mr=marker.getBoundingClientRect();
+  const targetY=s2r.top-wRect.top+s2r.height/2,targetX=s2r.right-wRect.left;
+  const mx=(mr.left+mr.right)/2-wRect.left,my=mr.top-wRect.top;
+  const rx=wRect.width-2;
+  path.setAttribute('d',`M${mx},${my} L${rx},${my} L${rx},${targetY} L${targetX},${targetY}`);
+}
+
+function dropOnSlot(slot){
+  if(dragCardId===null) return;
+  const sid=parseInt(slot.dataset.sid);
+  const state=slotState[sid];
+  if(state.locked) return;
+  if(dragFromSlot===sid){dragCardId=null;dragFromSlot=null;return;}
+  if(dragFromSlot!==null){
+    slotState[dragFromSlot]={cardId:null,symChosen:null,wrongCount:0,locked:false,hintMsg:null,okMsg:null,wrongCard:false};
+    renderSlot(dragFromSlot);
+  }
+  if(state.cardId!==null&&state.cardId!==dragCardId){
+    const prev=document.getElementById('card-'+state.cardId);
+    if(prev) prev.classList.remove('used');
+  }
+  const isCorrect=(CORRECT_CARD[sid]===dragCardId);
+  state.cardId=dragCardId;state.symChosen=null;state.wrongCount=0;state.hintMsg=null;state.okMsg=null;state.wrongCard=!isCorrect;
+  const card=document.getElementById('card-'+dragCardId);
+  if(card) card.classList.add('used');
+  dragCardId=null;dragFromSlot=null;
+  renderSlot(sid);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>drawLoopBack()));
+}
+
+function renderSlot(sid){
+  const slot=document.getElementById('slot-'+sid);if(!slot) return;
+  const state=slotState[sid];
+  // 선택 상태 클래스 유지
+  const isTarget=slot.classList.contains('clickable-target');
+
+  if(state.cardId===null){
+    slot.className='flow-slot'+(isTarget?' clickable-target':'');
+    slot.innerHTML=`<span style="font-size:10px;color:#ccc;">카드를<br>클릭하거나<br>드래그해서 놓아요</span>`;
+    return;
+  }
+  const placed=STEPS[state.cardId];
+
+  if(state.wrongCard){
+    slot.className='flow-slot filled wrong-slot';
+    slot.innerHTML=`
+      <div style="font-size:10px;font-weight:700;color:#C62828;margin-bottom:2px;">❌ 이 칸에 맞지 않는 카드예요!</div>
+      <div style="font-size:10px;color:#5A3A00;line-height:1.4;">${placed.emoji} ${placed.label}</div>
+      <div style="font-size:9px;color:#E53935;margin-top:3px;">↩ 되돌리기 버튼을 눌러 카드를 다시 풀로 보내세요.</div>
+      <button class="return-btn" onclick="returnCardToPool(${sid})">↩ 되돌리기</button>
+    `;
+    setupSlotDrag(slot,sid,state.cardId);
+    return;
+  }
+
+  slot.className='flow-slot filled'+(state.locked?' correct-slot':'');
+  let symHTML='';
+  if(!state.locked){
+    const btns=Object.keys(SYM_SVG).map(k=>`<button class="mini-sym-btn" onclick="chooseSymbol(${sid},'${k}')">${SYM_SVG[k]}<span>${SYM_NAMES[k]}</span></button>`).join('');
+    symHTML=`<div class="mini-sym-row">${btns}</div>`;
+  } else {
+    const step=STEPS[sid];
+    symHTML=`<div style="margin-top:4px;text-align:center;">${SYM_SVG[step.answer]}<div style="font-size:9px;color:#4CAF50;font-weight:600;margin-top:1px;">${SYM_NAMES[step.answer]} ✓</div></div>`;
+  }
+  const hintHTML=state.hintMsg?`<div class="slot-msg err">💡 ${state.hintMsg}</div>`:'';
+  const okHTML=state.okMsg?`<div class="slot-msg ok">✅ ${state.okMsg}</div>`:'';
+  const retBtn=!state.locked?`<button class="return-btn" onclick="returnCardToPool(${sid})">↩ 되돌리기</button>`:'';
+  slot.innerHTML=`<div class="slot-lbl">${placed.emoji} ${placed.label}</div>${symHTML}${hintHTML}${okHTML}${retBtn}`;
+  if(!state.locked) setupSlotDrag(slot,sid,state.cardId);
+  updateProgress();
+}
+
+function setupSlotDrag(slot,sid,cardId){
+  slot.draggable=true;
+  slot.addEventListener('dragstart',e=>{
+    // 버튼 클릭이면 드래그 시작 막기
+    if(e.target.classList.contains('return-btn')||e.target.classList.contains('mini-sym-btn')) return;
+    dragCardId=cardId;dragFromSlot=sid;
+    setTimeout(()=>slot.classList.add('dragging'),0);
+  });
+  slot.addEventListener('dragend',()=>slot.classList.remove('dragging'));
+}
+
+function chooseSymbol(sid,sym){
+  const state=slotState[sid],step=STEPS[sid];
+  if(state.locked||state.wrongCard) return;
+  state.symChosen=sym;
+  if(sym===step.answer){
+    state.locked=true;state.okMsg=step.hintAns;state.hintMsg=null;
+    renderSlot(sid);checkAllDone();
+  } else {
+    state.wrongCount++;state.hintMsg=step.hint;
+    if(state.wrongCount>=2) state.hintMsg+=' → 정답: '+SYM_NAMES[step.answer];
+    const slot=document.getElementById('slot-'+sid);
+    slot.classList.add('wrong-flash');
+    setTimeout(()=>{slot.classList.remove('wrong-flash');renderSlot(sid);},450);
+  }
+  requestAnimationFrame(()=>requestAnimationFrame(()=>drawLoopBack()));
+}
+
+function updateProgress(){
+  const done=Object.values(slotState).filter(s=>s.locked).length;
+  const total=STEPS.length;
+  document.getElementById('main-prog').style.width=Math.round((done/total)*100)+'%';
+  document.getElementById('main-badge').textContent=`순서도 만들기 — ${done} / ${total} 완성`;
+}
+
+function checkAllDone(){
+  if(Object.values(slotState).every(s=>s.locked)){
+    setTimeout(()=>{go('s-complete');renderComplete();},700);
+  }
+}
+
+function renderComplete(){
+  const wrap=document.getElementById('cfc-wrap');wrap.innerHTML='';
+  const W=340,nW=300,nH=38,dH=52,gap=14,branchGap=10,leftX=(W-nW)/2;
+  const bW=(nW-branchGap)/2,bL=leftX,bR=leftX+bW+branchGap;
+  let y=10;
+  const y0=y;y+=nH+gap;const y1=y;y+=nH+gap;const y2=y;y+=dH+gap;
+  const yBr=y;y+=nH+gap;const y5=y;y+=dH+gap;
+  y+=14;const y6=y;y+=nH+gap;const y7=y;y+=nH;
+  const totalH=y7+nH+10,cx=leftX+nW/2,bMidL=bL+bW/2,bMidR=bR+bW/2;
+
+  function splitLines(t,m){if(t.length<=m)return[t];const w=t.split(' ');const ls=[];let c='';w.forEach(x=>{if((c+x).length>m){ls.push(c.trim());c=x+' ';}else{c+=x+' ';}});if(c.trim())ls.push(c.trim());return ls;}
+  function mkE(x,y,w,h,t){return `<g><ellipse cx="${x+w/2}" cy="${y+h/2}" rx="${w/2}" ry="${h/2}" fill="#FFF8E1" stroke="#F5B800" stroke-width="2"/><text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" font-size="11" fill="#7A5800">${t}</text></g>`;}
+  function mkR(x,y,w,h,t){const cx2=x+w/2,cy2=y+h/2;const ls=splitLines(t,22);const lh=13;const sy=cy2-(ls.length-1)*lh/2+3;const ts=ls.map((l,i)=>`<tspan x="${cx2}" dy="${i?lh:0}">${l}</tspan>`).join('');return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="#E3F2FD" stroke="#1976D2" stroke-width="2"/><text x="${cx2}" y="${sy}" text-anchor="middle" font-size="10" fill="#0D47A1">${ts}</text></g>`;}
+  function mkD(x,y,w,h,t){const cx2=x+w/2;const ls=splitLines(t,18);const lh=12;const sy=y+h/2-(ls.length-1)*lh/2+4;const ts=ls.map((l,i)=>`<tspan x="${cx2}" dy="${i?lh:0}">${l}</tspan>`).join('');return `<g><polygon points="${cx2},${y} ${x+w},${y+h/2} ${cx2},${y+h} ${x},${y+h/2}" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="2"/><text x="${cx2}" y="${sy}" text-anchor="middle" font-size="10" fill="#4A148C">${ts}</text></g>`;}
+  const ar=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#F5B800" stroke-width="1.5" marker-end="url(#ah)"/>`;
+  const lb=(x,y,t,c='#aaa')=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="10" fill="${c}" font-weight="600">${t}</text>`;
+
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','100%');svg.setAttribute('viewBox',`0 0 ${W+40} ${totalH}`);svg.style.display='block';
+
+  let h=`<defs>
+    <marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#F5B800"/></marker>
+    <marker id="ah-red" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#E53935"/></marker>
+  </defs>`;
+  h+=mkE(leftX,y0,nW,nH,'🎮 게임 시작!');
+  h+=ar(cx,y0+nH,cx,y1);h+=mkR(leftX,y1,nW,nH,'🕐 순서 정하기');
+  h+=ar(cx,y1+nH,cx,y2);h+=mkD(leftX,y2,nW,dH,'🤔 재료타일 뒤집기 또는 버거 만들기?');
+  h+=`<line x1="${cx}" y1="${y2+dH}" x2="${bMidL}" y2="${yBr}" stroke="#F5B800" stroke-width="1.5" marker-end="url(#ah)"/>`;
+  h+=`<line x1="${cx}" y1="${y2+dH}" x2="${bMidR}" y2="${yBr}" stroke="#F5B800" stroke-width="1.5" marker-end="url(#ah)"/>`;
+  h+=lb(bMidL,yBr-4,'재료타일 뒤집기');h+=lb(bMidR,yBr-4,'버거 만들기');
+  h+=mkR(bL,yBr,bW,nH,'🃏 재료타일 1장 뒤집기');h+=mkR(bR,yBr,bW,nH,'🎯 도전! 재료 순서대로 찾기');
+  h+=`<line x1="${bMidL}" y1="${yBr+nH}" x2="${cx}" y2="${y5}" stroke="#F5B800" stroke-width="1.5" marker-end="url(#ah)"/>`;
+  h+=`<line x1="${bMidR}" y1="${yBr+nH}" x2="${cx}" y2="${y5}" stroke="#F5B800" stroke-width="1.5" marker-end="url(#ah)"/>`;
+  h+=mkD(leftX,y5,nW,dH,'❓ 재료를 순서대로 모두 찾았나요?');
+  h+=ar(cx,y5+dH,cx,y6-14);h+=lb(cx,y6-3,'예 (성공)','#4CAF50');
+  h+=mkR(leftX,y6,nW,nH,'🎴 버거카드 가져오기');
+  h+=ar(cx,y6+nH,cx,y7);h+=mkE(leftX,y7,nW,nH,'🏁 게임 종료');
+  const fsx=leftX+nW,fsy=y5+dH/2,lrx=leftX+nW+28,ty2=y2+dH/2,tx2=leftX+nW;
+  h+=`<text x="${(fsx+lrx)/2+2}" y="${fsy-6}" font-size="9" fill="#E53935" font-weight="600" text-anchor="middle">아니오 (실패)</text>`;
+  h+=`<path d="M${fsx},${fsy} L${lrx},${fsy} L${lrx},${ty2} L${tx2},${ty2}" stroke="#E53935" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#ah-red)"/>`;
+  svg.innerHTML=h;wrap.appendChild(svg);
+}
+
+function restart(){
+  slotState={};dragCardId=null;dragFromSlot=null;selectedCardId=null;
+  [1,2].forEach(n=>{
+    tqWrong[n]=0;
+    document.querySelectorAll(`#tq${n} .sym-btn`).forEach(b=>{b.className='sym-btn';b.disabled=false;});
+    document.getElementById(`tq${n}-hint`).className='hint-box';
+    document.getElementById(`tq${n}-ok`).className='ok-box';
+    document.getElementById(`tq${n}-next`).style.display='none';
+  });
+  go('s-start');
+}
+</script>
+</body>
+</html>
